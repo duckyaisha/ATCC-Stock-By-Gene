@@ -43,58 +43,40 @@ The resulting cell lines would have ALL of NRXN1/2/3 expressed highly, AND ANY O
 
 """
 
-
 def ATCC_Has_It_For_You(andGenes, orGenes, PathToFolder):
  
     os.chdir(PathToFolder)
     df = pd.read_csv('TPM.csv')
 
 #rename columns to remove numbers and just have the gene name
+ 
     df.columns = df.columns.str.split(' ').str[0].str.strip()
     gene_names = df.columns.tolist()
 
     print(len(df))
+    conditions = [(df[gene] > 2.5) for gene in andGenes]
    
-    if(len(andGenes)) == 2:
-        filt1 = df[(df[andGenes[0]] > 2.5) & (df[andGenes[1]] > 2.5)]
-        print(len(filt1))
-    elif(len(andGenes)) == 3:
-        filt1 = df[(df[andGenes[0]] > 2.5) & (df[andGenes[1]] > 2.5) & (df[andGenes[2]] > 2.5)]
-        print(len(filt1))
-    elif(len(andGenes)) == 4:
-        filt1 = df[(df[andGenes[0]] > 2.5) & (df[andGenes[1]] > 2.5) & (df[andGenes[2]] > 2.5) & (df[andGenes[3]] > 2.5)]
-        print(len(filt1))
-    elif(len(andGenes)) == 5:
-        filt1 = df[(df[andGenes[0]] > 2.5) & (df[andGenes[1]] > 2.5) & (df[andGenes[2]] > 2.5) & (df[andGenes[3]] > 2.5) & (df[andGenes[4]] > 2.5)]
-        print(len(filt1))
-    elif(len(andGenes)) == 6:
-        filt1 = df[(df[andGenes[0]] > 2.5) & (df[andGenes[1]] > 2.5) & (df[andGenes[2]] > 2.5) & (df[andGenes[3]] > 2.5) & (df[andGenes[4]] > 2.5) & (df[andGenes[5]] > 2.5)]
-        print(len(filt1))
-    else: 
-        print("six or fewer genes please!")
-                
+    combined_condition = conditions[0]
     
-    if(len(orGenes)) == 2:
-        filt2 = filt1[(filt1[orGenes[0]] > 2.5) | (filt1[orGenes[1]] >2.5)]
-        print(len(filt2))
-    elif(len(orGenes)) == 1:
-         filt2 = filt1[(filt1[orGenes[0]] > 2.5)]
-         print(len(filt2))    
-    elif(len(orGenes)) == 3:
-        filt2 = filt1[(filt1[orGenes[0]] > 2.5) | (filt1[orGenes[1]] >2.5) | (filt1[orGenes[2]] >2.5)]
-        print(len(filt2))
-    elif(len(orGenes)) == 4:
-        filt2 = filt1[(filt1[orGenes[0]] > 2.5) | (filt1[orGenes[1]] >2.5) | (filt1[orGenes[2]] >2.5) | (filt1[orGenes[3]] >2.5)]
-        print(len(filt2))
-    elif(len(orGenes)) == 5:
-        filt2 = filt1[(filt1[orGenes[0]] > 2.5) | (filt1[orGenes[1]] >2.5) | (filt1[orGenes[2]] >2.5) | (filt1[orGenes[3]] >2.5) | (filt1[orGenes[4]] >2.5)]
-        print(len(filt2))
-    elif(len(orGenes)) == 6:
-         filt2 = filt1[(filt1[orGenes[0]] > 2.5) | (filt1[orGenes[1]] >2.5) | (filt1[orGenes[2]] >2.5) | (filt1[orGenes[3]] >2.5) | (filt1[orGenes[4]] >2.5) | (filt1[orGenes[5]] >2.5)]
-         print(len(filt2))
-    else: 
-        print("six or fewer genes please!")
+    for condition in conditions [1:]:
+       combined_condition &= condition
+   
+    filt1 = df[combined_condition]
+    print(len(filt1))
     
+   
+    conditions2 = [(df[gene] > 2.5) for gene in orGenes]
+   
+    combined_condition2 = conditions2[0]
+    
+    for condition2 in conditions2 [1:]:
+       combined_condition2 |= condition2
+       
+    combined_condition2_filt1 = combined_condition2.loc[filt1.index]   
+   
+    filt2 = filt1[combined_condition2_filt1]
+    print(len(filt2))
+            
     namesmapfull = pd.read_csv("Model.csv")
 
     namesmap = namesmapfull[["ModelID","StrippedCellLineName"]]
